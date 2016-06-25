@@ -46,7 +46,7 @@ namespace ChatClientInterface
 
             _clientSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
-            if (Environment.MachineName == "MAHPC")
+            if (ip.Contains("local"))
             {
                 conn = new Thread(new ThreadStart(LocalLoopConnect));
             }
@@ -229,6 +229,7 @@ namespace ChatClientInterface
         private void AddText(string text)
         {
             Output.Items.Add(text);
+            Output.TopIndex = Output.Items.Count - 1;
         }
 
         private void ChatWindow_Load(object sender, EventArgs e)
@@ -247,6 +248,7 @@ namespace ChatClientInterface
             if (shouldUpdate)
             {
                 AddText(nextText);
+                
             }
 
         }
@@ -259,7 +261,7 @@ namespace ChatClientInterface
             {
                 if (nextText.Length * size >= Output.Width)
                 {
-                    string[] tmp = WrapText(nextText, size);
+                    string[] tmp = WrapText(nextText);
                     foreach (string s in tmp)
                     {
                         AddText(s);
@@ -273,6 +275,22 @@ namespace ChatClientInterface
                 Output.Invalidate();
             }
             Update();
+        }
+
+
+        private static string[] WrapText(string org)
+        {
+            int px_size = (int)(Math.Ceiling(org.Length * Output.Font.SizeInPoints));
+            int px_over = px_size - Output.ClientSize.Width;
+            int over = (int)(Math.Ceiling(px_over / Output.Font.SizeInPoints));
+            int spce_index = 0;
+            for(int i = 0; i < 25; i++)
+            {
+                spce_index = org.Length - over - i;
+                if (org[spce_index] == ' ')
+                    break;
+            }
+            return new string[] { org.Substring(0, spce_index + 1).Trim(), org.Substring(spce_index).Trim() };
         }
 
         private static string[] WrapText(string org, float size)
